@@ -1,6 +1,7 @@
 import boto3
 import json
 import logging
+from custom_encoder import CustomEncoder
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -36,5 +37,5 @@ def buildResponse(statusCode, body=None):
         },
     }
     if body is not None:
-        response["body"] = json.dumps(body)
+        response["body"] = json.dumps(body, cls=CustomEncoder)
     return response
