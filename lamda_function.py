@@ -87,6 +87,28 @@ def saveProduct(requestBody):
         logger.exception("")
 
 
+def modifyProduct(productId, updateKey, updateValue):
+    try:
+        response = table.update_item(
+            Key={
+                "productId": productId,
+            },
+            UpdateExpression="set %s = :value" % updateKey,
+            ExpressionAttributeValues={
+                ":value": updateValue,
+            },
+            ReturnValues="UPDATED_NEW",
+        )
+        body = {
+            "Operation": "UPDATE",
+            "Message": "SUCCESS",
+            "UpdatedAttributes": response,
+        }
+        return buildResponse(200, body)
+    except:
+        logger.exception("")
+
+
 def buildResponse(statusCode, body=None):
     response = {
         "statusCode": statusCode,
