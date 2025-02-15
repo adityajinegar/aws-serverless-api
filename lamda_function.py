@@ -20,4 +20,21 @@ products = "/products"
 
 
 def lambda_handler(event, context):
-    pass
+    logger.info(event)
+    httpMethod = event["httpMethod"]
+    path = event["path"]
+    if httpMethod == getMethod and path == healthPath:
+        response = buildResponse(200)
+
+
+def buildResponse(statusCode, body=None):
+    response = {
+        "statusCode": statusCode,
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+        },
+    }
+    if body is not None:
+        response["body"] = json.dumps(body)
+    return response
