@@ -64,12 +64,16 @@ def getProduct(productId):
 def getProducts():
     try:
         response = table.scan()
-        result = response["Item"]
+        result = response["Items"]
 
         while "LastEvaluatedKey" in response:
             response = table.scan(ExclusiveStartKey=response["LastEvaluatedKey"])
-            result.extend(response["Item"])
+            result.extend(response["Items"])
 
+        body = {
+            "products": result,
+        }
+        return buildResponse(200, body)
     except:
         logger.exception("")
 
