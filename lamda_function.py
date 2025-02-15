@@ -109,6 +109,24 @@ def modifyProduct(productId, updateKey, updateValue):
         logger.exception("")
 
 
+def deleteProduct(productId):
+    try:
+        response = table.delete_item(
+            Key={
+                "productId": productId,
+            },
+            ReturnValues="ALL_OLD",
+        )
+        body = {
+            "Operation": "DELETE",
+            "Messsage": "SUCCESS",
+            "deletedItem": response,
+        }
+        return buildResponse(200, body)
+    except:
+        logger.exception("")
+
+
 def buildResponse(statusCode, body=None):
     response = {
         "statusCode": statusCode,
