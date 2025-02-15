@@ -16,8 +16,8 @@ patchMethod = "PATCH"
 deleteMethod = "DELETE"
 
 healthPath = "/health"
-product = "/product"
-products = "/products"
+productPath = "/product"
+productsPath = "/products"
 
 
 def lambda_handler(event, context):
@@ -26,6 +26,65 @@ def lambda_handler(event, context):
     path = event["path"]
     if httpMethod == getMethod and path == healthPath:
         response = buildResponse(200)
+    elif httpMethod == getMethod and path == productPath:
+        response = getProduct(event["queryStringParameters"]["productId"])
+    elif httpMethod == getMethod and path == productsPath:
+        response = getProducts()
+    elif httpMethod == postMethod and path == productPath:
+        response = saveProduct(json.loads(event["body"]))
+    elif httpMethod == patchMethod and path == productPath:
+        requestBody = json.loads(event["body"])
+        response = modifyProduct(
+            requestBody["productId"],
+            requestBody["updateKey"],
+            requestBody["updateValue"],
+        )
+    elif httpMethod == deleteMethod and path == productPath:
+        requestBody = json.loads(event["body"])
+        response = deleteProduct(requestBody["productId"])
+    else:
+        response = buildResponse(404, "Not Found")
+
+    return response
+
+
+def getProduct(productId):
+    try:
+        response = table.get_item(Key={"productId": productId})
+        if "Item" in response:
+            return buildResponse(200, response["Item"])
+        else:
+            return buildResponse(
+                404, {"Message": "ProductId: %s not found" % productId}
+            )
+    except:
+        logger.exception("")
+
+
+def getProducts():
+    try:
+        response = table.scan()
+        result = response["Item"]
+
+        while "LastEvaluatedKey" in response:
+            response = table.scan(ExclusiveStartKey=response["LastEvaluatedKey"])
+            result.extend(response["Item"])
+
+    except:
+        logger.exception("")
+
+
+def saveProduct(requestBody):
+    try:
+        table.putItem(Item=requestBody)
+        body = {
+            "Operation": "SAVE",
+            "Message": "SUCCESS",
+            "Item": requestBody,
+        }
+        return buildResponse(200, body)
+    except:
+        logger.exception("")
 
 
 def buildResponse(statusCode, body=None):
